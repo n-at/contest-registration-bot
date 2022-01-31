@@ -1,6 +1,7 @@
 package main
 
 import (
+	"contest-registration-bot/web"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"os"
@@ -22,5 +23,6 @@ func init() {
 }
 
 func main() {
-
+	e := web.NewServer()
+	log.Fatal(e.Start(":3000"))
 }
