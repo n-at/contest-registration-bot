@@ -7,16 +7,13 @@ import (
 	"net/http"
 )
 
-var (
-	e *echo.Echo
-)
-
 func NewServer() *echo.Echo {
-	e = echo.New()
+	e := echo.New()
 
-	e.Static("/assets", "assets")
+	e.HideBanner = true
 	e.Renderer = Pongo2Renderer{Debug: false}
 	e.HTTPErrorHandler = httpErrorHandler
+	e.Static("/assets", "assets")
 
 	e.GET("/", func(c echo.Context) error {
 		return c.Render(http.StatusOK, "templates/index.twig", pongo2.Context{
