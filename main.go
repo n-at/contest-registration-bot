@@ -1,6 +1,7 @@
 package main
 
 import (
+	"contest-registration-bot/storage"
 	"contest-registration-bot/web"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -23,6 +24,12 @@ func init() {
 }
 
 func main() {
-	e := web.NewServer()
-	log.Fatal(e.Start(":3000"))
+	err := storage.Open("data/bolt.db")
+	if err != nil {
+		log.Fatalf("unable to open storage: %s", err)
+	}
+	defer storage.Close()
+
+	server := web.NewServer()
+	log.Fatal(server.Start(":3000"))
 }

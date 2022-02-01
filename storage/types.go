@@ -1,0 +1,39 @@
+package storage
+
+type Contest struct {
+	Id          uint64 `boltholdKey:"Id"`
+	Name        string
+	Description string
+	When        string
+	Where       string
+	Closed      bool
+	Hidden      bool
+}
+
+type ContestParticipant struct {
+	Id            uint64 `boltholdKey:"Id"`
+	ParticipantId string
+	ContestId     uint64
+	Name          string
+	School        string
+	Contacts      string
+	Languages     string
+	Login         string
+	Password      string
+}
+
+type RegistrationState struct {
+	ParticipantId string `boltholdKey:"ParticipantId"`
+	ContestId     uint64
+	Step          string
+	Name          string
+	School        string
+	Contacts      string
+	Languages     string
+}
+
+type ContestNotification struct {
+	Id        uint64 `boltholdKey:"Id"`
+	ContestId uint64
+	Message   string
+}
