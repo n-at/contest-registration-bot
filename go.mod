@@ -2,15 +2,13 @@ module contest-registration-bot
 
 go 1.17
 
-require github.com/sirupsen/logrus v1.8.1
-
-require github.com/spf13/viper v1.10.1
-
-require github.com/labstack/echo/v4 v4.6.3
-
-require github.com/flosch/pongo2/v4 v4.0.2
-
-require github.com/timshannon/bolthold v0.0.0-20210913165410-232392fc8a6a
+require (
+	github.com/sirupsen/logrus v1.8.1
+	github.com/spf13/viper v1.10.1
+	github.com/labstack/echo/v4 v4.6.3
+	github.com/flosch/pongo2/v4 v4.0.2
+	github.com/timshannon/bolthold v0.0.0-20210913165410-232392fc8a6a
+)
 
 require (
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
