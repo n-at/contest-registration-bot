@@ -40,18 +40,18 @@ func GetContests() ([]Contest, error) {
 }
 
 // GetContest One contest by id
-func GetContest(id uint64) (Contest, error) {
+func GetContest(id uint64) (*Contest, error) {
 	var contest Contest
 	err := store.FindOne(&contest, bolthold.Where(bolthold.Key).Eq(id))
-	return contest, err
+	return &contest, err
 }
 
 // SaveContest Create new or update contest
-func SaveContest(contest Contest) error {
+func SaveContest(contest *Contest) error {
 	if contest.Id != 0 {
-		return store.Update(contest.Id, &contest)
+		return store.Update(contest.Id, contest)
 	} else {
-		return store.Insert(bolthold.NextSequence(), &contest)
+		return store.Insert(bolthold.NextSequence(), contest)
 	}
 }
 
@@ -107,18 +107,18 @@ func GetContestParticipantParticipation(participantId string) ([]ContestParticip
 }
 
 // GetContestParticipant Get one contest registration
-func GetContestParticipant(id uint64) (ContestParticipant, error) {
+func GetContestParticipant(id uint64) (*ContestParticipant, error) {
 	var participant ContestParticipant
 	err := store.FindOne(&participant, bolthold.Where(bolthold.Key).Eq(id))
-	return participant, err
+	return &participant, err
 }
 
 // SaveContestParticipant Create new or update contest registration
-func SaveContestParticipant(participant ContestParticipant) error {
+func SaveContestParticipant(participant *ContestParticipant) error {
 	if participant.Id != 0 {
-		return store.Update(participant.Id, &participant)
+		return store.Update(participant.Id, participant)
 	} else {
-		return store.Insert(bolthold.NextSequence(), &participant)
+		return store.Insert(bolthold.NextSequence(), participant)
 	}
 }
 
@@ -130,14 +130,14 @@ func DeleteContestParticipant(id uint64) error {
 ///////////////////////////////////////////////////////////////////////////////
 
 // GetRegistrationState Get current registration state
-func GetRegistrationState(participantId string) (RegistrationState, error) {
+func GetRegistrationState(participantId string) (*RegistrationState, error) {
 	var state RegistrationState
 	err := store.FindOne(&state, bolthold.Where(bolthold.Key).Eq(participantId))
-	return state, err
+	return &state, err
 }
 
 // SaveRegistrationState Save given participant registration state
-func SaveRegistrationState(state RegistrationState) error {
+func SaveRegistrationState(state *RegistrationState) error {
 	if state.ParticipantId == "" {
 		return errors.New("saving registration state with empty ParticipantId")
 	}
@@ -162,10 +162,10 @@ func GetContestNotifications(contestId uint64) ([]ContestNotification, error) {
 }
 
 // SaveContestNotification Create new or update contest notification
-func SaveContestNotification(notification ContestNotification) error {
+func SaveContestNotification(notification *ContestNotification) error {
 	if notification.Id != 0 {
-		return store.Update(notification.Id, &notification)
+		return store.Update(notification.Id, notification)
 	} else {
-		return store.Insert(bolthold.NextSequence(), &notification)
+		return store.Insert(bolthold.NextSequence(), notification)
 	}
 }
