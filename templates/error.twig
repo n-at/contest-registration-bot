@@ -7,6 +7,10 @@
 {% block content %}
     <h1>Ошибка {{ error.Code }}</h1>
     <p>
-        {{ error.Message }}
+        {% if error.Message %}
+            {{ error.Message }}
+        {% else %}
+            {{ error.Error() }}
+        {% endif %}
     </p>
 {% endblock %}

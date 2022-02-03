@@ -1,0 +1,90 @@
+{% extends "includes/layout.twig" %}
+
+{% block title %}
+    Contest Registration Bot
+{% endblock %}
+
+{% block content %}
+    <div class="mb-3">
+        <a href="/contest" class="btn btn-outline-success">
+            <i class="bi bi-plus-circle"></i> Новый контест
+        </a>
+    </div>
+
+    {% if contests %}
+        <ul class="list-group">
+            {% for contest in contests %}
+                <ul class="list-group-item">
+                    <div class="row">
+                        <div class="col-11">
+                            {% if contest.Closed or contest.Hidden %}
+                                <div>
+                                    {% if contest.Closed %}
+                                        <span class="badge bg-danger">Регистрация закрыта</span>
+                                    {% endif %}
+                                    {% if contest.Hidden %}
+                                        <span class="badge bg-secondary">Скрыт</span>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+
+                            <div class="lead">{{ contest.Name }}</div>
+                            <div>
+                                <strong>Что:</strong> {{ contest.Description }}
+                            </div>
+                            <div>
+                                <strong>Где:</strong> {{ contest.Where }}
+                            </div>
+                            <div>
+                                <strong>Когда:</strong> {{ contest.When }}
+                            </div>
+                        </div>
+                        <div class="col-1 text-end">
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle"
+                                        id="contest-menu-{{ contest.Id }}" title="Действия"
+                                        data-bs-toggle="dropdown"
+                                        aria-expanded="false">
+                                    <i class="bi bi-three-dots"></i>
+                                </button>
+                                <ul class="dropdown-menu" aria-labelledby="contest-menu-{{ contest.Id }}">
+                                    <li>
+                                        <a class="dropdown-item" href="/contest/{{ contest.Id }}">Изменить</a>
+                                    </li>
+                                    {% if contest.Closed %}
+                                        <li>
+                                            <form action="/contest/{{ contest.Id }}/open" method="post" class="d-inline">
+                                                <button type="submit" class="dropdown-item">Открыть регистрацию</button>
+                                            </form>
+                                        </li>
+                                    {% else %}
+                                        <li>
+                                            <form action="/contest/{{ contest.Id }}/close" method="post" class="d-inline">
+                                                <button type="submit" class="dropdown-item">Закрыть регистрацию</button>
+                                            </form>
+                                        </li>
+                                    {% endif %}
+                                    {% if contest.Hidden %}
+                                        <li>
+                                            <form action="/contest/{{ contest.Id }}/show" method="post" class="d-inline">
+                                                <button type="submit" class="dropdown-item">Показать</button>
+                                            </form>
+                                        </li>
+                                    {% else %}
+                                        <li>
+                                            <form action="/contest/{{ contest.Id }}/hide" method="post" class="d-inline">
+                                                <button type="submit" class="dropdown-item">Скрыть</button>
+                                            </form>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </ul>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <div class="alert alert-info">Пока не создано ни одного контеста</div>
+    {% endif %}
+{% endblock %}

@@ -15,11 +15,14 @@ func NewServer() *echo.Echo {
 	e.HTTPErrorHandler = httpErrorHandler
 	e.Static("/assets", "assets")
 
-	e.GET("/", func(c echo.Context) error {
-		return c.Render(http.StatusOK, "templates/index.twig", pongo2.Context{
-			"hello": "world",
-		})
-	})
+	e.GET("/", contestsGet)
+	e.GET("/contest/:id", contestGet)
+	e.GET("/contest", contestNew)
+	e.POST("/contest", contestSave)
+	e.POST("/contest/:id/hide", contestHide)
+	e.POST("/contest/:id/show", contestShow)
+	e.POST("/contest/:id/close", contestClose)
+	e.POST("/contest/:id/open", contestOpen)
 
 	return e
 }

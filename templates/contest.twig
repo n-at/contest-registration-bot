@@ -1,0 +1,34 @@
+{% extends "includes/layout.twig" %}
+
+{% block title %}
+    Contest
+{% endblock %}
+
+{% block content %}
+    {% if contest %}
+        <h1>Изменить контест</h1>
+    {% else %}
+        <h1>Создать контест</h1>
+    {% endif %}
+
+    <form action="/contest" method="post">
+        <input type="hidden" name="id" value="{{ contest.Id }}">
+        <div class="mb-3">
+            <label for="name" class="form-label">Название</label>
+            <input type="text" id="name" name="name" class="form-control" value="{{ contest.Name }}" required>
+        </div>
+        <div class="mb-3">
+            <label for="description" class="form-label">Описание</label>
+            <textarea id="description" name="description" class="form-control" rows="3" required>{{ contest.Description }}</textarea>
+        </div>
+        <div class="mb-3">
+            <label for="when" class="form-label">Когда будет проходить</label>
+            <textarea id="when" name="when" class="form-control" rows="3" required>{{ contest.When }}</textarea>
+        </div>
+        <div class="mb-3">
+            <label for="where" class="form-label">Где будет проходить</label>
+            <textarea id="where" name="where" class="form-control" rows="3" required>{{ contest.Where }}</textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Сохранить</button>
+    </form>
+{% endblock %}
