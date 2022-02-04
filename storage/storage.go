@@ -3,7 +3,9 @@ package storage
 import (
 	"errors"
 	"github.com/timshannon/bolthold"
+	"math/rand"
 	"sort"
+	"strings"
 )
 
 var (
@@ -115,6 +117,13 @@ func GetContestParticipant(id uint64) (*ContestParticipant, error) {
 
 // SaveContestParticipant Create new or update contest registration
 func SaveContestParticipant(participant *ContestParticipant) error {
+	if len(participant.Login) == 0 {
+		participant.Login = "p_" + generateRandomString(5)
+	}
+	if len(participant.Password) == 0 {
+		participant.Password = generateRandomString(10)
+	}
+
 	if participant.Id != 0 {
 		return store.Update(participant.Id, participant)
 	} else {
@@ -125,6 +134,22 @@ func SaveContestParticipant(participant *ContestParticipant) error {
 // DeleteContestParticipant Delete contest registration
 func DeleteContestParticipant(id uint64) error {
 	return store.Delete(id, &ContestParticipant{})
+}
+
+func generateRandomString(length int) string {
+	vowels := []rune{'e', 'u', 'i', 'o', 'a'}
+	consonants := []rune{'q', 'r', 't', 'p', 's', 'd', 'g', 'h', 'k', 'z', 'x', 'v', 'b', 'n', 'm'}
+
+	str := strings.Builder{}
+
+	for i := 0; i < length; i += 2 {
+		str.WriteRune(consonants[rand.Intn(len(consonants))])
+		if i != length-1 {
+			str.WriteRune(vowels[rand.Intn(len(vowels))])
+		}
+	}
+
+	return str.String()
 }
 
 ///////////////////////////////////////////////////////////////////////////////

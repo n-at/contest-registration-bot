@@ -43,13 +43,18 @@
                             <div class="dropdown">
                                 <button class="btn btn-sm btn-outline-secondary dropdown-toggle"
                                         id="contest-menu-{{ contest.Id }}" title="Действия"
-                                        data-bs-toggle="dropdown"
-                                        aria-expanded="false">
+                                        data-bs-toggle="dropdown" aria-expanded="false">
                                     <i class="bi bi-three-dots"></i>
                                 </button>
                                 <ul class="dropdown-menu" aria-labelledby="contest-menu-{{ contest.Id }}">
                                     <li>
                                         <a class="dropdown-item" href="/contest/{{ contest.Id }}">Изменить</a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="/contest/{{ contest.Id }}/participants">Участники</a>
+                                    </li>
+                                    <li>
+                                        <hr class="dropdown-divider">
                                     </li>
                                     {% if contest.Closed %}
                                         <li>

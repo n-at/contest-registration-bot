@@ -1,0 +1,58 @@
+{% extends "includes/layout.twig" %}
+
+{% block title %}
+    Contest participant
+{% endblock %}
+
+{% block content %}
+
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="/">Контесты</a>
+            </li>
+            <li class="breadcrumb-item">
+                <a href="/contest/{{ contest.Id }}/participants">Участники</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">
+                Редактирование участника
+            </li>
+        </ol>
+    </nav>
+
+    {% if participant %}
+        <h1>Изменить данные участника контеста &laquo;{{ contest.Name }}&raquo;</h1>
+    {% else %}
+        <h1>Зарегистрировать участника контеста &laquo;{{ contest.Name }}&raquo;</h1>
+    {% endif %}
+
+    <form action="/contest/{{ contest.Id }}/participant" method="post">
+        <input type="hidden" name="participant_id" value="{{ participant.Id }}">
+        <div class="mb-3">
+            <label for="name" class="form-label">Имя</label>
+            <input type="text" id="name" name="name" class="form-control" value="{{ participant.Name }}" required>
+        </div>
+        <div class="mb-3">
+            <label for="school" class="form-label">Образовательная организация, класс (курс, группа)</label>
+            <input type="text" id="school" name="school" class="form-control" value="{{ participant.School }}">
+        </div>
+        <div class="mb-3">
+            <label for="contacts" class="form-label">Контакты (email, телефон)</label>
+            <input type="text" id="contacts" name="contacts" class="form-control" value="{{ participant.Contacts }}">
+        </div>
+        <div class="mb-3">
+            <label for="languages" class="form-label">Предпочитаемые языки и среды программирования</label>
+            <input type="text" id="languages" name="languages" class="form-control" value="{{ participant.Languages }}" required>
+        </div>
+        <div class="mb-3">
+            <label for="login" class="form-label">Логин (оставьте пустым, чтобы сгенерировать автоматически)</label>
+            <input type="text" id="login" name="login" class="form-control" value="{{ participant.Login }}">
+        </div>
+        <div class="mb-3">
+            <label for="password" class="form-label">Пароль (оставьте пустым, чтобы сгенерировать автоматически)</label>
+            <input type="text" id="password" name="password" class="form-control" value="{{ participant.Password }}">
+        </div>
+        <button type="submit" class="btn btn-primary">Сохранить</button>
+    </form>
+
+{% endblock %}

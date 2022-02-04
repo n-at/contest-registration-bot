@@ -16,13 +16,20 @@ func NewServer() *echo.Echo {
 	e.Static("/assets", "assets")
 
 	e.GET("/", contestsGet)
-	e.GET("/contest/:id", contestGet)
 	e.GET("/contest", contestNew)
+	e.GET("/contest/:id", contestGet)
 	e.POST("/contest", contestSave)
 	e.POST("/contest/:id/hide", contestHide)
 	e.POST("/contest/:id/show", contestShow)
 	e.POST("/contest/:id/close", contestClose)
 	e.POST("/contest/:id/open", contestOpen)
+
+	e.GET("/contest/:id/participants", participantsList)
+	e.GET("/contest/:id/participants/export", participantsExport)
+	e.GET("/contest/:id/participant", participantNew)
+	e.GET("/contest/:id/participant/:participant_id", participantEdit)
+	e.POST("/contest/:id/participant", participantSave)
+	e.POST("/contest/:id/participant/:participant_id/delete", participantDelete)
 
 	return e
 }
