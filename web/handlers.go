@@ -2,11 +2,13 @@ package web
 
 import (
 	"contest-registration-bot/storage"
+	"encoding/csv"
 	"errors"
 	"fmt"
 	"github.com/flosch/pongo2/v4"
 	"github.com/labstack/echo/v4"
 	"net/http"
+	"strings"
 )
 
 type contestRequest struct {
@@ -208,7 +210,36 @@ func participantsList(c echo.Context) error {
 
 // participantsExport Export contest participant to CSV
 func participantsExport(c echo.Context) error {
-	return nil //TODO export to csv
+	contest, err := contest(c)
+	if err != nil {
+		return err
+	}
+
+	participants, err := storage.GetContestParticipants(contest.Id)
+	if err != nil {
+		return err
+	}
+
+	stringBuilder := &strings.Builder{}
+	csvWriter := csv.NewWriter(stringBuilder)
+	csvWriter.Comma = ';'
+	csvWriter.UseCRLF = false
+
+	err = csvWriter.Write([]string{"login", "password", "name"})
+	if err != nil {
+		return err
+	}
+
+	for _, participant := range participants {
+		err = csvWriter.Write([]string{participant.Login, participant.Password, participant.Name})
+		if err != nil {
+			return err
+		}
+	}
+
+	csvWriter.Flush()
+
+	return c.Blob(http.StatusOK, "text/csv", []byte(stringBuilder.String()))
 }
 
 // participantNew Form to create new participant
