@@ -239,6 +239,7 @@ func participantsExport(c echo.Context) error {
 
 	csvWriter.Flush()
 
+	c.Response().Header().Set("Content-Disposition", "attachment; filename=\"participants.csv\"")
 	return c.Blob(http.StatusOK, "text/csv", []byte(stringBuilder.String()))
 }
 
