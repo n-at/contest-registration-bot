@@ -3,10 +3,10 @@ module contest-registration-bot
 go 1.17
 
 require (
+	github.com/flosch/pongo2/v4 v4.0.2
+	github.com/labstack/echo/v4 v4.6.3
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/viper v1.10.1
-	github.com/labstack/echo/v4 v4.6.3
-	github.com/flosch/pongo2/v4 v4.0.2
 	github.com/timshannon/bolthold v0.0.0-20210913165410-232392fc8a6a
 )
 
@@ -29,7 +29,7 @@ require (
 	go.etcd.io/bbolt v1.3.6 // indirect
 	golang.org/x/crypto v0.0.0-20220131195533-30dcbda58838 // indirect
 	golang.org/x/net v0.0.0-20220127200216-cd36cc0744dd // indirect
-	golang.org/x/sys v0.0.0-20220128215802-99c3d69c2c27 // indirect
+	golang.org/x/sys v0.0.0-20220204135822-1c1b9b1eba6a // indirect
 	golang.org/x/text v0.3.7 // indirect
 	gopkg.in/ini.v1 v1.66.3 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
