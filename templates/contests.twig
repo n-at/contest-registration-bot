@@ -12,7 +12,7 @@
     </div>
 
     {% if contests %}
-        <ul class="list-group">
+        <ul class="list-group mb-3">
             {% for contest in contests %}
                 <ul class="list-group-item">
                     <div class="row">
@@ -52,6 +52,9 @@
                                     </li>
                                     <li>
                                         <a class="dropdown-item" href="/contest/{{ contest.Id }}/participants">Участники</a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="/contest/{{ contest.Id }}/notifications">Оповещения</a>
                                     </li>
                                     <li>
                                         <hr class="dropdown-divider">

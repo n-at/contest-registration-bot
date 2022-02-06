@@ -47,6 +47,6 @@ func main() {
 	}
 	registrationBot.Start()
 
-	server := web.NewServer(webConfiguration)
+	server := web.NewServer(webConfiguration, registrationBot)
 	log.Fatal(server.Start(webConfiguration.Listen))
 }

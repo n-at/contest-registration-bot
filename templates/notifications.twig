@@ -1,0 +1,32 @@
+{% extends "includes/layout.twig" %}
+
+{% block title %}
+    Contest notifications
+{% endblock %}
+
+{% block content %}
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/">Контесты</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Оповещения</li>
+        </ol>
+    </nav>
+
+    <h1>Оповещения для участников контеста &laquo;{{ contest.Name }}&raquo;</h1>
+
+    <div class="mb-3">
+        <a href="/contest/{{ contest.Id }}/notification" class="btn btn-outline-success">
+            <i class="bi bi-plus-circle"></i> Отправить оповещение
+        </a>
+    </div>
+
+    {% if notifications %}
+        <ul class="list-group mb-3">
+            {% for notification in notifications %}
+                <li class="list-group-item">{{ notification.Message }}</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <div class="alert alert-info">Оповещения участникам пока не рассылались</div>
+    {% endif %}
+{% endblock %}

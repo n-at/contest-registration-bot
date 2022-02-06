@@ -1,0 +1,38 @@
+{% extends "includes/layout.twig" %}
+
+{% block title %}
+    Contest notification
+{% endblock %}
+
+{% block content %}
+
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="/">Контесты</a>
+            </li>
+            <li class="breadcrumb-item">
+                <a href="/contest/{{ contest.Id }}/notifications">Оповещения</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">
+                Оповещение
+            </li>
+        </ol>
+    </nav>
+
+    {% if notification %}
+        <h1>Изменить оповещение участников контеста &laquo;{{ contest.Name }}&raquo;</h1>
+    {% else %}
+        <h1>Новое оповещение участников контеста &laquo;{{ contest.Name }}&raquo;</h1>
+    {% endif %}
+
+    <form method="post" action="/contest/{{ contest.Id }}/notification">
+        <input type="hidden" name="notification_id" value="{{ notification.Id }}">
+        <div class="mb-3">
+            <label for="message" class="form-label">Сообщение</label>
+            <textarea id="message" name="message" class="form-control" rows="3" required>{{ notification.Message }}</textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Отправить</button>
+    </form>
+
+{% endblock %}

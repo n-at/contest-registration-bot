@@ -1,6 +1,7 @@
 package web
 
 import (
+	"contest-registration-bot/bot"
 	"github.com/flosch/pongo2/v4"
 	"github.com/labstack/echo/v4"
 	log "github.com/sirupsen/logrus"
@@ -12,9 +13,15 @@ type Configuration struct {
 	Listen         string
 }
 
+var (
+	registrationBot *bot.Bot
+)
+
 ///////////////////////////////////////////////////////////////////////////////
 
-func NewServer(configuration Configuration) *echo.Echo {
+func NewServer(configuration Configuration, b *bot.Bot) *echo.Echo {
+	registrationBot = b
+
 	e := echo.New()
 
 	e.HideBanner = true
@@ -37,6 +44,10 @@ func NewServer(configuration Configuration) *echo.Echo {
 	e.GET("/contest/:id/participant/:participant_id", participantEdit)
 	e.POST("/contest/:id/participant", participantSave)
 	e.POST("/contest/:id/participant/:participant_id/delete", participantDelete)
+
+	e.GET("/contest/:id/notifications", contestNotifications)
+	e.GET("/contest/:id/notification", contestNotificationNew)
+	e.POST("/contest/:id/notification", contestNotificationSave)
 
 	return e
 }

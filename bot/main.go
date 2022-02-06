@@ -5,6 +5,7 @@ import (
 	"errors"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	log "github.com/sirupsen/logrus"
+	"strings"
 )
 
 const (
@@ -81,6 +82,39 @@ func (bot *Bot) processUpdate(update *tgbotapi.Update) error {
 	}
 
 	return bot.processCommand(update)
+}
+
+func (bot *Bot) SendNotifications(contestId uint64, text string) error {
+	contest, err := storage.GetContest(contestId)
+	if err != nil {
+		return err
+	}
+
+	participants, err := storage.GetContestParticipants(contestId)
+	if err != nil {
+		return nil
+	}
+
+	messageBuilder := strings.Builder{}
+	messageBuilder.WriteString("*Оповещение для участников контеста \"" + esc(contest.Name) + "\"*:\n\n")
+	messageBuilder.WriteString(esc(text))
+	messageText := messageBuilder.String()
+
+	go func() {
+		for _, participant := range participants {
+			if participant.ParticipantId == 0 {
+				continue
+			}
+			message := tgbotapi.NewMessage(participant.ParticipantId, messageText)
+			message.ParseMode = tgbotapi.ModeMarkdownV2
+			_, err := bot.api.Send(message)
+			if err != nil {
+				log.Errorf("unable to send contest %d notification to %d", contestId, participant.ParticipantId)
+			}
+		}
+	}()
+
+	return nil
 }
 
 ///////////////////////////////////////////////////////////////////////////////

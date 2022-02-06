@@ -38,7 +38,7 @@ func (bot *Bot) commandStart(update *tgbotapi.Update) error {
 // commandHelp Help message
 func (bot *Bot) commandHelp(update *tgbotapi.Update) error {
 	message := strings.Builder{}
-	message.WriteString(esc("Этот бот поможет зарегистрироваться на олимпиаду. Доступные команды:\n"))
+	message.WriteString(esc("Этот бот поможет зарегистрироваться на контест. Доступные команды:\n"))
 	message.WriteString(esc("/help - справка\n"))
 	message.WriteString(esc("/contests - список контестов и сведения о регистрации\n"))
 	message.WriteString(esc("/registration - регистрация на контест\n"))
@@ -120,16 +120,16 @@ func (bot *Bot) commandRegistration(update *tgbotapi.Update) error {
 		contestButtons = append(contestButtons, button)
 	}
 
-	if len(contestButtons) > 0 {
-		message := tgbotapi.NewMessage(update.Message.Chat.ID, "Выберите доступный для регистрации контест")
-		keyboard := tgbotapi.NewReplyKeyboard(tgbotapi.NewKeyboardButtonRow(contestButtons...))
-		keyboard.OneTimeKeyboard = true
-		message.ReplyMarkup = keyboard
-		_, err := bot.api.Send(message)
-		return err
-	} else {
+	if len(contestButtons) == 0 {
 		return bot.sendMessageToUpdate(update, "Доступных для регистрации контестов нет")
 	}
+
+	message := tgbotapi.NewMessage(update.Message.Chat.ID, "Выберите доступный для регистрации контест")
+	keyboard := tgbotapi.NewReplyKeyboard(tgbotapi.NewKeyboardButtonRow(contestButtons...))
+	keyboard.OneTimeKeyboard = true
+	message.ReplyMarkup = keyboard
+	_, err = bot.api.Send(message)
+	return err
 }
 
 // commandRegister Begin contest registration

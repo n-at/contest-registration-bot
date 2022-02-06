@@ -29,6 +29,11 @@ type participantRequest struct {
 	Password  string `form:"password"`
 }
 
+type notificationRequest struct {
+	Id      uint64 `form:"notification_id"`
+	Message string `form:"message"`
+}
+
 type idRequest struct {
 	Id uint64 `form:"id" param:"id" query:"id"`
 }
@@ -44,9 +49,12 @@ type participantIdRequest struct {
 // contestsGet List all contests
 func contestsGet(c echo.Context) error {
 	contests, err := storage.GetContests()
+	if err != nil {
+		return err
+	}
+
 	return c.Render(http.StatusOK, "templates/contests.twig", pongo2.Context{
-		"contests":   contests,
-		"page_error": err,
+		"contests": contests,
 	})
 }
 
@@ -63,6 +71,7 @@ func contestGet(c echo.Context) error {
 	if err != nil {
 		return err
 	}
+
 	return c.Render(http.StatusOK, "templates/contest.twig", pongo2.Context{
 		"contest": contest,
 	})
@@ -71,8 +80,7 @@ func contestGet(c echo.Context) error {
 // contestSave Save new or update existing contest
 func contestSave(c echo.Context) error {
 	var contestData contestRequest
-	err := (&echo.DefaultBinder{}).BindBody(c, &contestData)
-	if err != nil {
+	if err := (&echo.DefaultBinder{}).BindBody(c, &contestData); err != nil {
 		return err
 	}
 	if len(contestData.Name) == 0 {
@@ -89,6 +97,7 @@ func contestSave(c echo.Context) error {
 	}
 
 	var contest *storage.Contest
+	var err error
 
 	if contestData.Id != 0 {
 		contest, err = storage.GetContest(contestData.Id)
@@ -110,8 +119,7 @@ func contestSave(c echo.Context) error {
 		}
 	}
 
-	err = storage.SaveContest(contest)
-	if err != nil {
+	if err := storage.SaveContest(contest); err != nil {
 		return err
 	}
 
@@ -146,8 +154,7 @@ func contestUpdateClosed(value bool, c echo.Context) error {
 
 	contest.Closed = value
 
-	err = storage.SaveContest(contest)
-	if err != nil {
+	if err := storage.SaveContest(contest); err != nil {
 		return err
 	}
 
@@ -162,8 +169,7 @@ func contestUpdateHidden(value bool, c echo.Context) error {
 
 	contest.Hidden = value
 
-	err = storage.SaveContest(contest)
-	if err != nil {
+	if err := storage.SaveContest(contest); err != nil {
 		return err
 	}
 
@@ -225,14 +231,12 @@ func participantsExport(c echo.Context) error {
 	csvWriter.Comma = ';'
 	csvWriter.UseCRLF = false
 
-	err = csvWriter.Write([]string{"login", "password", "name"})
-	if err != nil {
+	if err := csvWriter.Write([]string{"login", "password", "name"}); err != nil {
 		return err
 	}
 
 	for _, participant := range participants {
-		err = csvWriter.Write([]string{participant.Login, participant.Password, participant.Name})
-		if err != nil {
+		if err := csvWriter.Write([]string{participant.Login, participant.Password, participant.Name}); err != nil {
 			return err
 		}
 	}
@@ -249,6 +253,7 @@ func participantNew(c echo.Context) error {
 	if err != nil {
 		return err
 	}
+
 	return c.Render(http.StatusOK, "templates/participant.twig", pongo2.Context{
 		"contest":     contest,
 		"participant": nil,
@@ -261,10 +266,12 @@ func participantEdit(c echo.Context) error {
 	if err != nil {
 		return err
 	}
+
 	participant, err := contestParticipant(c)
 	if err != nil {
 		return err
 	}
+
 	return c.Render(http.StatusOK, "templates/participant.twig", pongo2.Context{
 		"contest":     contest,
 		"participant": participant,
@@ -279,8 +286,7 @@ func participantSave(c echo.Context) error {
 	}
 
 	var participantData participantRequest
-	err = (&echo.DefaultBinder{}).BindBody(c, &participantData)
-	if err != nil {
+	if err := (&echo.DefaultBinder{}).BindBody(c, &participantData); err != nil {
 		return err
 	}
 	if len(participantData.Name) == 0 {
@@ -315,8 +321,7 @@ func participantSave(c echo.Context) error {
 		}
 	}
 
-	err = storage.SaveContestParticipant(participant)
-	if err != nil {
+	if err := storage.SaveContestParticipant(participant); err != nil {
 		return err
 	}
 
@@ -332,8 +337,7 @@ func participantDelete(c echo.Context) error {
 
 	contestId := participant.ContestId
 
-	err = storage.DeleteContestParticipant(participant.Id)
-	if err != nil {
+	if err := storage.DeleteContestParticipant(participant.Id); err != nil {
 		return err
 	}
 
@@ -342,8 +346,7 @@ func participantDelete(c echo.Context) error {
 
 func contestParticipant(c echo.Context) (*storage.ContestParticipant, error) {
 	var id participantIdRequest
-	err := (&echo.DefaultBinder{}).Bind(&id, c)
-	if err != nil {
+	if err := (&echo.DefaultBinder{}).Bind(&id, c); err != nil {
 		return nil, err
 	}
 
@@ -361,4 +364,69 @@ func contestParticipant(c echo.Context) (*storage.ContestParticipant, error) {
 ///////////////////////////////////////////////////////////////////////////////
 //contest notifications
 
-//TODO
+// contestNotifications List contest notifications
+func contestNotifications(c echo.Context) error {
+	contest, err := contest(c)
+	if err != nil {
+		return err
+	}
+
+	notifications, err := storage.GetContestNotifications(contest.Id)
+	if err != nil {
+		return err
+	}
+
+	return c.Render(http.StatusOK, "templates/notifications.twig", pongo2.Context{
+		"contest":       contest,
+		"notifications": notifications,
+	})
+}
+
+// contestNotificationNew Form for new contest notification
+func contestNotificationNew(c echo.Context) error {
+	contest, err := contest(c)
+	if err != nil {
+		return err
+	}
+
+	return c.Render(http.StatusOK, "templates/notification.twig", pongo2.Context{
+		"contest":      contest,
+		"notification": nil,
+	})
+}
+
+// contestNotificationSave Save contest notification
+func contestNotificationSave(c echo.Context) error {
+	contest, err := contest(c)
+	if err != nil {
+		return err
+	}
+
+	var notificationData notificationRequest
+	if err := (&echo.DefaultBinder{}).Bind(&notificationData, c); err != nil {
+		return err
+	}
+	if len(notificationData.Message) == 0 {
+		return errors.New("notification message required")
+	}
+
+	var notification *storage.ContestNotification
+
+	if notificationData.Id != 0 {
+		return errors.New("notification change is not implemented")
+	} else {
+		notification = &storage.ContestNotification{
+			ContestId: contest.Id,
+			Message:   notificationData.Message,
+		}
+	}
+
+	if err := storage.SaveContestNotification(notification); err != nil {
+		return err
+	}
+	if err := registrationBot.SendNotifications(contest.Id, notification.Message); err != nil {
+		return err
+	}
+
+	return c.Redirect(http.StatusFound, fmt.Sprintf("/contest/%d/notifications", contest.Id))
+}

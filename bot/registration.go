@@ -76,7 +76,7 @@ func (bot *Bot) processRegistration(update *tgbotapi.Update, registrationState *
 		}
 		if err := storage.SaveContestParticipant(participant); err != nil {
 			log.Errorf("registration: unable to save contest participant: %s", err)
-			return bot.sendMessageToUpdate(update, esc("Не удалось зарегистрироваться на контест\\. Попробуйте еще раз"))
+			return bot.sendMessageToUpdate(update, esc("Не удалось зарегистрироваться на контест. Попробуйте еще раз"))
 		}
 		message := strings.Builder{}
 		message.WriteString(esc("Регистрация завершена :)\n"))
