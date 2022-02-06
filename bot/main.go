@@ -65,8 +65,6 @@ func (bot *Bot) Start() {
 	}()
 }
 
-///////////////////////////////////////////////////////////////////////////////
-
 func (bot *Bot) processUpdate(update *tgbotapi.Update) error {
 	if update.Message == nil {
 		return nil
@@ -85,27 +83,6 @@ func (bot *Bot) processUpdate(update *tgbotapi.Update) error {
 	return bot.processCommand(update)
 }
 
-func (bot *Bot) processCommand(update *tgbotapi.Update) error {
-	if !update.Message.IsCommand() {
-		return bot.sendMessageToUpdate(update, "Пожалуйста, введите команду. Для справки введите /help")
-	}
-
-	switch update.Message.Command() {
-	case "start":
-		return bot.commandStart(update)
-	case "help":
-		return bot.commandHelp(update)
-	case "contests":
-		return bot.commandContests(update)
-	}
-
-	return nil
-}
-
-func (bot *Bot) processRegistration(update *tgbotapi.Update, registrationState *storage.RegistrationState) error {
-	return nil //TODO
-}
-
 ///////////////////////////////////////////////////////////////////////////////
 // Utility methods
 
@@ -117,6 +94,20 @@ func (bot *Bot) sendMessageToUpdate(update *tgbotapi.Update, message string) err
 	return err
 }
 
-func (bot *Bot) esc(text string) string {
+func esc(text string) string {
 	return tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, text)
+}
+
+func trimString(text string, maxLength int) string {
+	runes := []rune(text)
+	length := min(len(runes), maxLength)
+	return string(runes[0:length])
+}
+
+func min(a, b int) int {
+	if a < b {
+		return a
+	} else {
+		return b
+	}
 }

@@ -1,5 +1,13 @@
 package storage
 
+const (
+	RegistrationStepZero      = "zero"
+	RegistrationStepName      = "name"
+	RegistrationStepSchool    = "school"
+	RegistrationStepContacts  = "contacts"
+	RegistrationStepLanguages = "languages"
+)
+
 type Contest struct {
 	Id          uint64 `boltholdKey:"Id"`
 	Name        string
