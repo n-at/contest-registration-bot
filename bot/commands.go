@@ -91,6 +91,16 @@ func (bot *Bot) commandContests(update *tgbotapi.Update) error {
 			message.WriteString("*Школа/ВУЗ:* " + esc(participant.School) + "\n")
 			message.WriteString("*Логин:* `" + esc(participant.Login) + "`\n")
 			message.WriteString("*Пароль:* `" + esc(participant.Password) + "`\n")
+
+			notifications, err := storage.GetContestNotifications(contest.Id)
+			if err != nil {
+				log.Errorf("/contest: unable to get notifications of contest %d: %s", contest.Id, err)
+			} else if len(notifications) > 0 {
+				message.WriteString("_Оповещения участников:_\n")
+				for _, notification := range notifications {
+					message.WriteString(esc(">>> "+notification.Message) + "\n")
+				}
+			}
 		}
 	}
 

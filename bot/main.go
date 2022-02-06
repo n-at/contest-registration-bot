@@ -96,7 +96,7 @@ func (bot *Bot) SendNotifications(contestId uint64, text string) error {
 	}
 
 	messageBuilder := strings.Builder{}
-	messageBuilder.WriteString("*Оповещение для участников контеста \"" + esc(contest.Name) + "\"*:\n\n")
+	messageBuilder.WriteString("*Оповещение участников контеста \"" + esc(contest.Name) + "\"*:\n\n")
 	messageBuilder.WriteString(esc(text))
 	messageText := messageBuilder.String()
 
