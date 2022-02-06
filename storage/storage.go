@@ -182,7 +182,7 @@ func DeleteRegistrationState(id int64) error {
 // GetContestNotifications List all contest notifications
 func GetContestNotifications(contestId uint64) ([]ContestNotification, error) {
 	var notifications []ContestNotification
-	err := store.Find(&notifications, bolthold.Where(bolthold.Key).Eq(contestId))
+	err := store.Find(&notifications, bolthold.Where("ContestId").Eq(contestId))
 	if err != nil {
 		return nil, err
 	}
@@ -194,6 +194,15 @@ func GetContestNotifications(contestId uint64) ([]ContestNotification, error) {
 	return notifications, err
 }
 
+// GetContestNotification Find given contest notification
+func GetContestNotification(notificationId uint64) (*ContestNotification, error) {
+	var notification ContestNotification
+	if err := store.FindOne(&notification, bolthold.Where(bolthold.Key).Eq(notificationId)); err != nil {
+		return nil, err
+	}
+	return &notification, nil
+}
+
 // SaveContestNotification Create new or update contest notification
 func SaveContestNotification(notification *ContestNotification) error {
 	if notification.Id != 0 {
@@ -201,4 +210,9 @@ func SaveContestNotification(notification *ContestNotification) error {
 	} else {
 		return store.Insert(bolthold.NextSequence(), notification)
 	}
+}
+
+// DeleteContestNotification Remove given contest notification
+func DeleteContestNotification(notificationId uint64) error {
+	return store.Delete(notificationId, &ContestNotification{})
 }

@@ -47,7 +47,9 @@ func NewServer(configuration Configuration, b *bot.Bot) *echo.Echo {
 
 	e.GET("/contest/:id/notifications", contestNotifications)
 	e.GET("/contest/:id/notification", contestNotificationNew)
+	e.GET("/contest/:id/notification/:notification_id", contestNotificationEdit)
 	e.POST("/contest/:id/notification", contestNotificationSave)
+	e.POST("/contest/:id/notification/:notification_id/delete", contestNotificationDelete)
 
 	return e
 }

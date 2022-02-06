@@ -43,6 +43,11 @@ type participantIdRequest struct {
 	ParticipantId uint64 `form:"participant_id" param:"participant_id" query:"participant_id"`
 }
 
+type notificationIdRequest struct {
+	ContestId      uint64 `form:"id" param:"id" query:"id"`
+	NotificationId uint64 `form:"notification_id" param:"notification_id" query:"notification_id"`
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 //contests
 
@@ -395,6 +400,24 @@ func contestNotificationNew(c echo.Context) error {
 	})
 }
 
+// contestNotificationEdit Edit existing contest notification
+func contestNotificationEdit(c echo.Context) error {
+	contest, err := contest(c)
+	if err != nil {
+		return err
+	}
+
+	notification, err := contestNotification(c)
+	if err != nil {
+		return err
+	}
+
+	return c.Render(http.StatusOK, "templates/notification.twig", pongo2.Context{
+		"contest":      contest,
+		"notification": notification,
+	})
+}
+
 // contestNotificationSave Save contest notification
 func contestNotificationSave(c echo.Context) error {
 	contest, err := contest(c)
@@ -403,7 +426,7 @@ func contestNotificationSave(c echo.Context) error {
 	}
 
 	var notificationData notificationRequest
-	if err := (&echo.DefaultBinder{}).Bind(&notificationData, c); err != nil {
+	if err := (&echo.DefaultBinder{}).BindBody(c, &notificationData); err != nil {
 		return err
 	}
 	if len(notificationData.Message) == 0 {
@@ -413,7 +436,14 @@ func contestNotificationSave(c echo.Context) error {
 	var notification *storage.ContestNotification
 
 	if notificationData.Id != 0 {
-		return errors.New("notification change is not implemented")
+		notification, err = storage.GetContestNotification(notificationData.Id)
+		if err != nil {
+			return err
+		}
+		if notification.ContestId != contest.Id {
+			return errors.New("notification belongs to other contest")
+		}
+		notification.Message = notificationData.Message
 	} else {
 		notification = &storage.ContestNotification{
 			ContestId: contest.Id,
@@ -429,4 +459,40 @@ func contestNotificationSave(c echo.Context) error {
 	}
 
 	return c.Redirect(http.StatusFound, fmt.Sprintf("/contest/%d/notifications", contest.Id))
+}
+
+// contestNotificationDelete Delete given contest notification
+func contestNotificationDelete(c echo.Context) error {
+	contest, err := contest(c)
+	if err != nil {
+		return err
+	}
+
+	notification, err := contestNotification(c)
+	if err != nil {
+		return err
+	}
+
+	if err := storage.DeleteContestNotification(notification.Id); err != nil {
+		return err
+	}
+
+	return c.Redirect(http.StatusFound, fmt.Sprintf("/contest/%d/notifications", contest.Id))
+}
+
+func contestNotification(c echo.Context) (*storage.ContestNotification, error) {
+	var notificationId notificationIdRequest
+	if err := (&echo.DefaultBinder{}).Bind(&notificationId, c); err != nil {
+		return nil, err
+	}
+
+	notification, err := storage.GetContestNotification(notificationId.NotificationId)
+	if err != nil {
+		return nil, err
+	}
+	if notification.ContestId != notificationId.ContestId {
+		return nil, errors.New("notification belongs to other contest")
+	}
+
+	return notification, nil
 }

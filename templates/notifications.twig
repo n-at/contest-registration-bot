@@ -23,9 +23,51 @@
     {% if notifications %}
         <ul class="list-group mb-3">
             {% for notification in notifications %}
-                <li class="list-group-item">{{ notification.Message }}</li>
+                <li class="list-group-item">
+                    <div class="row">
+                        <div class="col-11">
+                            {{ notification.Message }}
+                        </div>
+                        <div class="col-1 text-end">
+                            <div class="dropdown">
+                                <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle"
+                                        id="notification-menu-{{ notification.Id }}" title="Действия"
+                                        data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-three-dots"></i>
+                                </button>
+                                <ul class="dropdown-menu" aria-labelledby="notification-menu-{{ participant.Id }}">
+                                    <li>
+                                        <a class="dropdown-item" href="/contest/{{ contest.Id }}/notification/{{ notification.Id }}">Изменить</a>
+                                    </li>
+                                    <li>
+                                        <button type="button" class="dropdown-item"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#notification-delete-modal-{{ notification.Id }}">Удалить</button>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </li>
             {% endfor %}
         </ul>
+
+        {% for notification in notifications %}
+            <div class="modal fade" id="notification-delete-modal-{{ notification.Id }}" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-body">
+                            Удалить оповещение?
+                        </div>
+                        <div class="modal-footer">
+                            <form action="/contest/{{ contest.Id }}/notification/{{ notification.Id }}/delete" method="post">
+                                <button type="submit" class="btn btn-danger">Удалить</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
     {% else %}
         <div class="alert alert-info">Оповещения участникам пока не рассылались</div>
     {% endif %}
