@@ -120,8 +120,8 @@ func (bot *Bot) SendNotifications(contestId uint64, text string) error {
 ///////////////////////////////////////////////////////////////////////////////
 // Utility methods
 
-// sendMessageToUpdate Set plain text message to update's channel
-func (bot *Bot) sendMessageToUpdate(update *tgbotapi.Update, message string) error {
+// msg Set plain text message to update's channel
+func (bot *Bot) msg(update *tgbotapi.Update, message string) error {
 	response := tgbotapi.NewMessage(update.Message.Chat.ID, message)
 	response.ParseMode = tgbotapi.ModeMarkdownV2
 	_, err := bot.api.Send(response)
