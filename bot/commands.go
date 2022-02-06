@@ -25,9 +25,9 @@ func (bot *Bot) processCommand(update *tgbotapi.Update) error {
 		return bot.commandRegistration(update)
 	case "register":
 		return bot.commandRegister(update)
+	default:
+		return bot.sendMessageToUpdate(update, esc("Не знаю такой команды :("))
 	}
-
-	return nil
 }
 
 // commandStart First run message
@@ -40,7 +40,7 @@ func (bot *Bot) commandHelp(update *tgbotapi.Update) error {
 	message := strings.Builder{}
 	message.WriteString(esc("Этот бот поможет зарегистрироваться на олимпиаду. Доступные команды:\n"))
 	message.WriteString(esc("/help - справка\n"))
-	message.WriteString(esc("/contests - список контестов\n"))
+	message.WriteString(esc("/contests - список контестов и сведения о регистрации\n"))
 	message.WriteString(esc("/registration - регистрация на контест\n"))
 	return bot.sendMessageToUpdate(update, message.String())
 }
@@ -49,8 +49,18 @@ func (bot *Bot) commandHelp(update *tgbotapi.Update) error {
 func (bot *Bot) commandContests(update *tgbotapi.Update) error {
 	contests, err := storage.GetContests()
 	if err != nil {
-		log.Errorf("unable to get contests: %s", err)
+		log.Errorf("/contests: unable to get contests: %s", err)
 		return bot.sendMessageToUpdate(update, esc("Не удалось найти контесты :("))
+	}
+
+	participation, err := storage.GetContestParticipantParticipation(update.Message.Chat.ID)
+	if err != nil {
+		log.Errorf("/contests: unable to get participation: %s", err)
+		return bot.sendMessageToUpdate(update, esc("Не удалось найти регистрации на контесты :("))
+	}
+	participants := make(map[uint64]storage.ContestParticipant)
+	for _, participant := range participation {
+		participants[participant.ContestId] = participant
 	}
 
 	message := strings.Builder{}
@@ -71,7 +81,16 @@ func (bot *Bot) commandContests(update *tgbotapi.Update) error {
 		message.WriteString("*Где:* " + esc(contest.Where) + "\n")
 		message.WriteString("*Когда:* " + esc(contest.When) + "\n")
 		if contest.Closed {
-			message.WriteString("*Регистрация закрыта*\n")
+			message.WriteString("_Регистрация на контест закрыта_\n")
+		}
+
+		participant, ok := participants[contest.Id]
+		if ok {
+			message.WriteString("_Есть регистрация на контест_\n")
+			message.WriteString("*Имя:* " + esc(participant.Name) + "\n")
+			message.WriteString("*Школа/ВУЗ:* " + esc(participant.School) + "\n")
+			message.WriteString("*Логин:* `" + esc(participant.Login) + "`\n")
+			message.WriteString("*Пароль:* `" + esc(participant.Password) + "`\n")
 		}
 	}
 
