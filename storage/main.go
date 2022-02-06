@@ -34,8 +34,7 @@ func Close() error {
 // GetContests List of all contests, ordered by id
 func GetContests() ([]Contest, error) {
 	var contests []Contest
-	err := store.Find(&contests, nil)
-	if err != nil {
+	if err := store.Find(&contests, nil); err != nil {
 		return nil, err
 	}
 	return contestsSorted(contests), nil
@@ -44,8 +43,10 @@ func GetContests() ([]Contest, error) {
 // GetContest One contest by id
 func GetContest(id uint64) (*Contest, error) {
 	var contest Contest
-	err := store.FindOne(&contest, bolthold.Where(bolthold.Key).Eq(id))
-	return &contest, err
+	if err := store.FindOne(&contest, bolthold.Where(bolthold.Key).Eq(id)); err != nil {
+		return nil, err
+	}
+	return &contest, nil
 }
 
 // SaveContest Create new or update contest
@@ -55,26 +56,6 @@ func SaveContest(contest *Contest) error {
 	} else {
 		return store.Insert(bolthold.NextSequence(), contest)
 	}
-}
-
-// GetParticipantContests List all contests where given participant registered
-func GetParticipantContests(participantId int64) ([]Contest, error) {
-	participants, err := GetContestParticipantParticipation(participantId)
-	if err != nil {
-		return nil, err
-	}
-
-	var contestIds []uint64
-	for _, participant := range participants {
-		contestIds = append(contestIds, participant.ContestId)
-	}
-
-	var contests []Contest
-	err = store.Find(&contests, bolthold.Where(bolthold.Key).In(contestIds))
-	if err != nil {
-		return nil, err
-	}
-	return contestsSorted(contests), nil
 }
 
 func contestsSorted(contests []Contest) []Contest {
@@ -89,8 +70,7 @@ func contestsSorted(contests []Contest) []Contest {
 // GetContestParticipants List all participants registered to given contest
 func GetContestParticipants(contestId uint64) ([]ContestParticipant, error) {
 	var participants []ContestParticipant
-	err := store.Find(&participants, bolthold.Where("ContestId").Eq(contestId))
-	if err != nil {
+	if err := store.Find(&participants, bolthold.Where("ContestId").Eq(contestId)); err != nil {
 		return nil, err
 	}
 
@@ -104,15 +84,19 @@ func GetContestParticipants(contestId uint64) ([]ContestParticipant, error) {
 // GetContestParticipantParticipation Participant registrations
 func GetContestParticipantParticipation(participantId int64) ([]ContestParticipant, error) {
 	var participants []ContestParticipant
-	err := store.Find(&participants, bolthold.Where("ParticipantId").Eq(participantId))
-	return participants, err
+	if err := store.Find(&participants, bolthold.Where("ParticipantId").Eq(participantId)); err != nil {
+		return nil, err
+	}
+	return participants, nil
 }
 
 // GetContestParticipant Get one contest registration
 func GetContestParticipant(id uint64) (*ContestParticipant, error) {
 	var participant ContestParticipant
-	err := store.FindOne(&participant, bolthold.Where(bolthold.Key).Eq(id))
-	return &participant, err
+	if err := store.FindOne(&participant, bolthold.Where(bolthold.Key).Eq(id)); err != nil {
+		return nil, err
+	}
+	return &participant, nil
 }
 
 // SaveContestParticipant Create new or update contest registration
@@ -157,11 +141,14 @@ func generateRandomString(length int) string {
 // GetRegistrationState Get current registration state
 func GetRegistrationState(participantId int64) (*RegistrationState, error) {
 	var state RegistrationState
-	err := store.FindOne(&state, bolthold.Where(bolthold.Key).Eq(participantId))
-	if err == bolthold.ErrNotFound {
-		return nil, nil
+	if err := store.FindOne(&state, bolthold.Where(bolthold.Key).Eq(participantId)); err != nil {
+		if err == bolthold.ErrNotFound {
+			return nil, nil
+		} else {
+			return nil, err
+		}
 	}
-	return &state, err
+	return &state, nil
 }
 
 // SaveRegistrationState Save given participant registration state
@@ -182,8 +169,7 @@ func DeleteRegistrationState(id int64) error {
 // GetContestNotifications List all contest notifications
 func GetContestNotifications(contestId uint64) ([]ContestNotification, error) {
 	var notifications []ContestNotification
-	err := store.Find(&notifications, bolthold.Where("ContestId").Eq(contestId))
-	if err != nil {
+	if err := store.Find(&notifications, bolthold.Where("ContestId").Eq(contestId)); err != nil {
 		return nil, err
 	}
 
@@ -191,7 +177,7 @@ func GetContestNotifications(contestId uint64) ([]ContestNotification, error) {
 		return notifications[i].Id < notifications[j].Id
 	})
 
-	return notifications, err
+	return notifications, nil
 }
 
 // GetContestNotification Find given contest notification

@@ -19,7 +19,7 @@ func (bot *Bot) processRegistration(update *tgbotapi.Update, registrationState *
 
 	case storage.RegistrationStepName:
 		name := strings.TrimSpace(update.Message.Text)
-		name = trimString(name, 100)
+		name = trim(name, 100)
 		if len(name) == 0 {
 			return bot.msg(update, esc("Попробуйте ввести имя еще раз"))
 		}
@@ -33,7 +33,7 @@ func (bot *Bot) processRegistration(update *tgbotapi.Update, registrationState *
 
 	case storage.RegistrationStepSchool:
 		school := strings.TrimSpace(update.Message.Text)
-		school = trimString(school, 200)
+		school = trim(school, 200)
 		if len(school) == 0 {
 			return bot.msg(update, esc("Попробуйте ввести название образовательной организации еще раз"))
 		}
@@ -47,7 +47,7 @@ func (bot *Bot) processRegistration(update *tgbotapi.Update, registrationState *
 
 	case storage.RegistrationStepContacts:
 		contacts := strings.TrimSpace(update.Message.Text)
-		contacts = trimString(contacts, 100)
+		contacts = trim(contacts, 100)
 		if len(contacts) == 0 {
 			return bot.msg(update, esc("Попробуйте ввести контакты еще раз"))
 		}
@@ -61,7 +61,7 @@ func (bot *Bot) processRegistration(update *tgbotapi.Update, registrationState *
 
 	case storage.RegistrationStepLanguages:
 		languages := strings.TrimSpace(update.Message.Text)
-		languages = trimString(languages, 200)
+		languages = trim(languages, 200)
 		participant := &storage.ContestParticipant{
 			ParticipantId: registrationState.ParticipantId,
 			ContestId:     registrationState.ContestId,
@@ -80,8 +80,8 @@ func (bot *Bot) processRegistration(update *tgbotapi.Update, registrationState *
 		}
 		message := strings.Builder{}
 		message.WriteString(esc("Регистрация завершена :)\n"))
-		message.WriteString("**Логин:** `" + esc(participant.Login) + "`\n")
-		message.WriteString("**Пароль:** `" + esc(participant.Password) + "`")
+		message.WriteString("*Логин:* `" + esc(participant.Login) + "`\n")
+		message.WriteString("*Пароль:* `" + esc(participant.Password) + "`")
 		return bot.msg(update, message.String())
 
 	default:

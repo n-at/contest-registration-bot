@@ -56,9 +56,6 @@ func (bot *Bot) Start() {
 
 	go func() {
 		for update := range updates {
-			if update.Message == nil {
-				continue
-			}
 			if err := bot.processUpdate(&update); err != nil {
 				log.Errorf("update error: %s", err)
 			}
@@ -66,24 +63,7 @@ func (bot *Bot) Start() {
 	}()
 }
 
-func (bot *Bot) processUpdate(update *tgbotapi.Update) error {
-	if update.Message == nil {
-		return nil
-	}
-
-	participantChatId := update.Message.Chat.ID
-
-	registrationState, err := storage.GetRegistrationState(participantChatId)
-	if err != nil {
-		return err
-	}
-	if registrationState != nil {
-		return bot.processRegistration(update, registrationState)
-	}
-
-	return bot.processCommand(update)
-}
-
+// SendNotifications Send notifications to all participants of the contest
 func (bot *Bot) SendNotifications(contestId uint64, text string) error {
 	contest, err := storage.GetContest(contestId)
 	if err != nil {
@@ -117,6 +97,24 @@ func (bot *Bot) SendNotifications(contestId uint64, text string) error {
 	return nil
 }
 
+func (bot *Bot) processUpdate(update *tgbotapi.Update) error {
+	if update.Message == nil {
+		return nil
+	}
+
+	participantChatId := update.Message.Chat.ID
+
+	registrationState, err := storage.GetRegistrationState(participantChatId)
+	if err != nil {
+		return err
+	}
+	if registrationState != nil {
+		return bot.processRegistration(update, registrationState)
+	}
+
+	return bot.processCommand(update)
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // Utility methods
 
@@ -132,7 +130,7 @@ func esc(text string) string {
 	return tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, text)
 }
 
-func trimString(text string, maxLength int) string {
+func trim(text string, maxLength int) string {
 	runes := []rune(text)
 	length := min(len(runes), maxLength)
 	return string(runes[0:length])

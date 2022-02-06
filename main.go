@@ -27,8 +27,15 @@ func init() {
 	if err := viper.ReadInConfig(); err != nil {
 		log.Fatalf("Unable to read config file: %s", err)
 	}
+	webConfiguration = web.Configuration{
+		DebugTemplates: false,
+		Listen:         ":3000",
+	}
 	if err := viper.UnmarshalKey("web", &webConfiguration); err != nil {
 		log.Fatalf("Unable to read web configuration: %s", err)
+	}
+	botConfiguration = bot.Configuration{
+		Debug: false,
 	}
 	if err := viper.UnmarshalKey("bot", &botConfiguration); err != nil {
 		log.Fatalf("Unable to read bot configuration: %s", err)
