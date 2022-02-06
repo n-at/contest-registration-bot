@@ -7,11 +7,18 @@ import (
 	"net/http"
 )
 
-func NewServer() *echo.Echo {
+type Configuration struct {
+	DebugTemplates bool
+	Listen         string
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+func NewServer(configuration Configuration) *echo.Echo {
 	e := echo.New()
 
 	e.HideBanner = true
-	e.Renderer = Pongo2Renderer{Debug: false}
+	e.Renderer = Pongo2Renderer{Debug: configuration.DebugTemplates}
 	e.HTTPErrorHandler = httpErrorHandler
 	e.Static("/assets", "assets")
 
@@ -34,7 +41,9 @@ func NewServer() *echo.Echo {
 	return e
 }
 
-// Custom HTTP error handler
+///////////////////////////////////////////////////////////////////////////////
+
+// httpErrorHandler Custom HTTP error handler
 func httpErrorHandler(e error, c echo.Context) {
 	code := http.StatusInternalServerError
 	if httpError, ok := e.(*echo.HTTPError); ok {

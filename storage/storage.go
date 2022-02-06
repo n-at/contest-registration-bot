@@ -58,7 +58,7 @@ func SaveContest(contest *Contest) error {
 }
 
 // GetParticipantContests List all contests where given participant registered
-func GetParticipantContests(participantId string) ([]Contest, error) {
+func GetParticipantContests(participantId int64) ([]Contest, error) {
 	participants, err := GetContestParticipantParticipation(participantId)
 	if err != nil {
 		return nil, err
@@ -102,7 +102,7 @@ func GetContestParticipants(contestId uint64) ([]ContestParticipant, error) {
 }
 
 // GetContestParticipantParticipation Participant registrations
-func GetContestParticipantParticipation(participantId string) ([]ContestParticipant, error) {
+func GetContestParticipantParticipation(participantId int64) ([]ContestParticipant, error) {
 	var participants []ContestParticipant
 	err := store.Find(&participants, bolthold.Where("ParticipantId").Eq(participantId))
 	return participants, err
@@ -155,18 +155,26 @@ func generateRandomString(length int) string {
 ///////////////////////////////////////////////////////////////////////////////
 
 // GetRegistrationState Get current registration state
-func GetRegistrationState(participantId string) (*RegistrationState, error) {
+func GetRegistrationState(participantId int64) (*RegistrationState, error) {
 	var state RegistrationState
 	err := store.FindOne(&state, bolthold.Where(bolthold.Key).Eq(participantId))
+	if err == bolthold.ErrNotFound {
+		return nil, nil
+	}
 	return &state, err
 }
 
 // SaveRegistrationState Save given participant registration state
 func SaveRegistrationState(state *RegistrationState) error {
-	if state.ParticipantId == "" {
+	if state.ParticipantId == 0 {
 		return errors.New("saving registration state with empty ParticipantId")
 	}
 	return store.Upsert(state.ParticipantId, state)
+}
+
+// DeleteRegistrationState Remove given registration state
+func DeleteRegistrationState(id int64) error {
+	return store.Delete(id, &RegistrationState{})
 }
 
 ///////////////////////////////////////////////////////////////////////////////

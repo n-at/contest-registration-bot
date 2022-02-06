@@ -1,0 +1,8 @@
+web:
+  debug-templates: false
+  listen: ":3000"
+
+bot:
+  token: "******"
+  update-timeout: 30
+  debug: false

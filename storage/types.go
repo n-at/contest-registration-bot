@@ -12,7 +12,7 @@ type Contest struct {
 
 type ContestParticipant struct {
 	Id            uint64 `boltholdKey:"Id"`
-	ParticipantId string
+	ParticipantId int64
 	ContestId     uint64
 	Name          string
 	School        string
@@ -23,7 +23,7 @@ type ContestParticipant struct {
 }
 
 type RegistrationState struct {
-	ParticipantId string `boltholdKey:"ParticipantId"`
+	ParticipantId int64 `boltholdKey:"ParticipantId"`
 	ContestId     uint64
 	Step          string
 	Name          string

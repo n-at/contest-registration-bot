@@ -1,11 +1,17 @@
 package main
 
 import (
+	"contest-registration-bot/bot"
 	"contest-registration-bot/storage"
 	"contest-registration-bot/web"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"os"
+)
+
+var (
+	webConfiguration web.Configuration
+	botConfiguration bot.Configuration
 )
 
 func init() {
@@ -21,15 +27,26 @@ func init() {
 	if err := viper.ReadInConfig(); err != nil {
 		log.Fatalf("Unable to read config file: %s", err)
 	}
+	if err := viper.UnmarshalKey("web", &webConfiguration); err != nil {
+		log.Fatalf("Unable to read web configuration: %s", err)
+	}
+	if err := viper.UnmarshalKey("bot", &botConfiguration); err != nil {
+		log.Fatalf("Unable to read bot configuration: %s", err)
+	}
 }
 
 func main() {
-	err := storage.Open("data/bolt.db")
-	if err != nil {
+	if err := storage.Open("data/bolt.db"); err != nil {
 		log.Fatalf("unable to open storage: %s", err)
 	}
 	defer storage.Close()
 
-	server := web.NewServer()
-	log.Fatal(server.Start(":3000"))
+	registrationBot, err := bot.New(botConfiguration)
+	if err != nil {
+		log.Fatalf("unable to create bot: %s", err)
+	}
+	registrationBot.Start()
+
+	server := web.NewServer(webConfiguration)
+	log.Fatal(server.Start(webConfiguration.Listen))
 }
