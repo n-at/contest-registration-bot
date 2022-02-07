@@ -138,9 +138,9 @@ func generateRandomString(length int) string {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-// GetRegistrationState Get current registration state
-func GetRegistrationState(participantId int64) (*RegistrationState, error) {
-	var state RegistrationState
+// GetDialogState Get current dialog state
+func GetDialogState(participantId int64) (*DialogState, error) {
+	var state DialogState
 	if err := store.FindOne(&state, bolthold.Where(bolthold.Key).Eq(participantId)); err != nil {
 		if err == bolthold.ErrNotFound {
 			return nil, nil
@@ -151,17 +151,23 @@ func GetRegistrationState(participantId int64) (*RegistrationState, error) {
 	return &state, nil
 }
 
-// SaveRegistrationState Save given participant registration state
-func SaveRegistrationState(state *RegistrationState) error {
+// SaveDialogState Save given participant dialog state
+func SaveDialogState(state *DialogState) error {
 	if state.ParticipantId == 0 {
-		return errors.New("saving registration state with empty ParticipantId")
+		return errors.New("saving dialog state with empty ParticipantId")
+	}
+	if state.DialogType == "" {
+		return errors.New("saving dialog state with empty DialogType")
+	}
+	if state.DialogStep == "" {
+		return errors.New("saving dialog state with empty DialogStep")
 	}
 	return store.Upsert(state.ParticipantId, state)
 }
 
-// DeleteRegistrationState Remove given registration state
-func DeleteRegistrationState(id int64) error {
-	return store.Delete(id, &RegistrationState{})
+// DeleteDialogState Remove given dialog state
+func DeleteDialogState(participantId int64) error {
+	return store.Delete(participantId, &DialogState{})
 }
 
 ///////////////////////////////////////////////////////////////////////////////

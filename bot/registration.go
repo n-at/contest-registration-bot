@@ -7,87 +7,87 @@ import (
 	"strings"
 )
 
-func (bot *Bot) processRegistration(update *tgbotapi.Update, registrationState *storage.RegistrationState) error {
-	switch registrationState.Step {
-	case storage.RegistrationStepZero:
-		registrationState.Step = storage.RegistrationStepName
-		if err := storage.SaveRegistrationState(registrationState); err != nil {
-			log.Errorf("registration: unable to save registration state: %s", err)
-			return bot.msg(update, esc("Не удалось сохранить данные :("))
+var registrationSteps = map[string]DialogAction{
+	RegistrationStepZero: func(bot *Bot, update *tgbotapi.Update, state *storage.DialogState) (bool, error) {
+		if err := bot.msg(update, esc("Начинаем регистрацию на контест.\nЧтобы отменить регистрацию, введите /cancel\nВведите Ваше имя:")); err != nil {
+			return false, err
 		}
-		return bot.msg(update, esc("Начинаем регистрацию на контест. Введите Ваше имя:"))
+		state.DialogStep = RegistrationStepName
+		return false, nil
+	},
 
-	case storage.RegistrationStepName:
-		name := strings.TrimSpace(update.Message.Text)
-		name = trim(name, 100)
+	RegistrationStepName: func(bot *Bot, update *tgbotapi.Update, state *storage.DialogState) (bool, error) {
+		name := trim(update.Message.Text, 100)
 		if len(name) == 0 {
-			return bot.msg(update, esc("Попробуйте ввести имя еще раз"))
+			if err := bot.msg(update, esc("Попробуйте ввести имя еще раз")); err != nil {
+				return false, err
+			}
+			return false, nil
 		}
-		registrationState.Name = name
-		registrationState.Step = storage.RegistrationStepSchool
-		if err := storage.SaveRegistrationState(registrationState); err != nil {
-			log.Errorf("registration: unable to save registration state: %s", err)
-			return bot.msg(update, esc("Не удалось сохранить данные :(\nПопробуйте ввести имя еще раз"))
+		if err := bot.msg(update, esc("Введите название Вашей школы или ВУЗа, а также класс (или курс и группу):")); err != nil {
+			return false, err
 		}
-		return bot.msg(update, esc("Введите название Вашей школы или ВУЗа, а также класс (или курс и группу):"))
+		state.Values["Name"] = name
+		state.DialogStep = RegistrationStepSchool
+		return false, nil
+	},
 
-	case storage.RegistrationStepSchool:
-		school := strings.TrimSpace(update.Message.Text)
-		school = trim(school, 200)
+	RegistrationStepSchool: func(bot *Bot, update *tgbotapi.Update, state *storage.DialogState) (bool, error) {
+		school := trim(update.Message.Text, 200)
 		if len(school) == 0 {
-			return bot.msg(update, esc("Попробуйте ввести название образовательной организации еще раз"))
+			if err := bot.msg(update, esc("Попробуйте ввести название образовательной организации еще раз")); err != nil {
+				return false, err
+			}
+			return false, nil
 		}
-		registrationState.School = school
-		registrationState.Step = storage.RegistrationStepContacts
-		if err := storage.SaveRegistrationState(registrationState); err != nil {
-			log.Errorf("registration: unable to save registration state: %s", err)
-			return bot.msg(update, esc("Не удалось сохранить данные :(\nПопробуйте ввести название образовательной организации еще раз"))
+		if err := bot.msg(update, esc("Введите Ваши контактные данные (номер телефона и адрес электронной почты):")); err != nil {
+			return false, err
 		}
-		return bot.msg(update, esc("Введите Ваши контактные данные (номер телефона и адрес электронной почты):"))
+		state.Values["School"] = school
+		state.DialogStep = RegistrationStepContacts
+		return false, nil
+	},
 
-	case storage.RegistrationStepContacts:
-		contacts := strings.TrimSpace(update.Message.Text)
-		contacts = trim(contacts, 100)
+	RegistrationStepContacts: func(bot *Bot, update *tgbotapi.Update, state *storage.DialogState) (bool, error) {
+		contacts := trim(update.Message.Text, 100)
 		if len(contacts) == 0 {
-			return bot.msg(update, esc("Попробуйте ввести контакты еще раз"))
+			if err := bot.msg(update, esc("Попробуйте ввести контакты еще раз")); err != nil {
+				return false, err
+			}
+			return false, nil
 		}
-		registrationState.Contacts = contacts
-		registrationState.Step = storage.RegistrationStepLanguages
-		if err := storage.SaveRegistrationState(registrationState); err != nil {
-			log.Errorf("registration: unable to save registration state: %s", err)
-			return bot.msg(update, esc("Не удалось сохранить данные :(\nПопробуйте ввести контакты еще раз"))
+		if err := bot.msg(update, esc("И последний вопрос, какие предпочитаете языки и среды программирования:")); err != nil {
+			return false, err
 		}
-		return bot.msg(update, esc("И последний вопрос, какие предпочитаете языки и среды программирования:"))
+		state.Values["Contacts"] = contacts
+		state.DialogStep = RegistrationStepLanguages
+		return false, nil
+	},
 
-	case storage.RegistrationStepLanguages:
-		languages := strings.TrimSpace(update.Message.Text)
-		languages = trim(languages, 200)
+	RegistrationStepLanguages: func(bot *Bot, update *tgbotapi.Update, state *storage.DialogState) (bool, error) {
+		languages := trim(update.Message.Text, 200)
 		participant := &storage.ContestParticipant{
-			ParticipantId: registrationState.ParticipantId,
-			ContestId:     registrationState.ContestId,
-			Name:          registrationState.Name,
-			School:        registrationState.School,
-			Contacts:      registrationState.Contacts,
+			ParticipantId: state.ParticipantId,
+			ContestId:     state.Values["ContestId"].(uint64),
+			Name:          state.Values["Name"].(string),
+			School:        state.Values["School"].(string),
+			Contacts:      state.Values["Contacts"].(string),
 			Languages:     languages,
-		}
-		if err := storage.DeleteRegistrationState(registrationState.ParticipantId); err != nil {
-			log.Errorf("registration: unable to delete registration state: %s", err)
-			return bot.msg(update, esc("Не удалось сохранить данные :(\nПопробуйте ввести языки программирования еще раз"))
 		}
 		if err := storage.SaveContestParticipant(participant); err != nil {
 			log.Errorf("registration: unable to save contest participant: %s", err)
-			return bot.msg(update, esc("Не удалось зарегистрироваться на контест. Попробуйте еще раз"))
+			if err := bot.msg(update, esc("Не удалось зарегистрироваться на контест. Попробуйте еще раз")); err != nil {
+				return true, err
+			}
+			return true, nil
 		}
 		message := strings.Builder{}
 		message.WriteString(esc("Регистрация завершена :)\n"))
 		message.WriteString("*Логин:* `" + esc(participant.Login) + "`\n")
 		message.WriteString("*Пароль:* `" + esc(participant.Password) + "`")
-		return bot.msg(update, message.String())
-
-	default:
-		if err := storage.DeleteRegistrationState(registrationState.ParticipantId); err != nil {
-			log.Errorf("registration: unable to delete registration state: %s", err)
+		if err := bot.msg(update, message.String()); err != nil {
+			return true, err
 		}
-		return bot.msg(update, esc("Ошибка регистрации :("))
-	}
+		return true, nil
+	},
 }

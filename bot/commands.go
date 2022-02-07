@@ -184,16 +184,14 @@ func (bot *Bot) commandRegister(update *tgbotapi.Update) error {
 		}
 	}
 
-	registrationState := &storage.RegistrationState{
+	registrationState := &storage.DialogState{
 		ParticipantId: participantId,
-		ContestId:     contestId,
-		Step:          storage.RegistrationStepZero,
-	}
-	err = storage.SaveRegistrationState(registrationState)
-	if err != nil {
-		log.Errorf("/register: unable to save new registration state: %s", err)
-		return bot.msg(update, esc("Не удалось начать регистрацию :("))
+		DialogType:    DialogTypeRegistration,
+		DialogStep:    RegistrationStepZero,
+		Values: storage.DialogValues{
+			"ContestId": contestId,
+		},
 	}
 
-	return bot.processRegistration(update, registrationState)
+	return bot.processDialog(update, registrationState)
 }

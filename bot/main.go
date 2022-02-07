@@ -10,6 +10,14 @@ import (
 
 const (
 	defaultTimeout = 30
+
+	DialogTypeRegistration = "registration"
+
+	RegistrationStepZero      = "zero"
+	RegistrationStepName      = "name"
+	RegistrationStepSchool    = "school"
+	RegistrationStepContacts  = "contacts"
+	RegistrationStepLanguages = "languages"
 )
 
 type Configuration struct {
@@ -22,6 +30,15 @@ type Bot struct {
 	api    *tgbotapi.BotAPI
 	config Configuration
 }
+
+type DialogAction func(bot *Bot, update *tgbotapi.Update, state *storage.DialogState) (bool, error)
+type DialogSteps map[string]DialogAction
+
+var (
+	dialogs = map[string]DialogSteps{
+		DialogTypeRegistration: registrationSteps,
+	}
+)
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -104,15 +121,63 @@ func (bot *Bot) processUpdate(update *tgbotapi.Update) error {
 
 	participantChatId := update.Message.Chat.ID
 
-	registrationState, err := storage.GetRegistrationState(participantChatId)
+	dialogState, err := storage.GetDialogState(participantChatId)
 	if err != nil {
 		return err
 	}
-	if registrationState != nil {
-		return bot.processRegistration(update, registrationState)
+	if dialogState != nil {
+		return bot.processDialog(update, dialogState)
+	} else {
+		return bot.processCommand(update)
+	}
+}
+
+func (bot *Bot) processDialog(update *tgbotapi.Update, dialogState *storage.DialogState) error {
+	dialogSteps, ok := dialogs[dialogState.DialogType]
+	if !ok {
+		log.Errorf("found unknown dialog type: %s", dialogState.DialogType)
+		if err := storage.DeleteDialogState(dialogState.ParticipantId); err != nil {
+			log.Errorf("unable to delete dialog state: %d: %s", dialogState.ParticipantId, err)
+			return bot.msg(update, esc("Произошла ошибка :( Попробуйте еще раз"))
+		}
 	}
 
-	return bot.processCommand(update)
+	dialogAction, ok := dialogSteps[dialogState.DialogStep]
+	if !ok {
+		log.Errorf("found unknown dialog step: %s.%s", dialogState.DialogType, dialogState.DialogStep)
+		if err := storage.DeleteDialogState(dialogState.ParticipantId); err != nil {
+			log.Errorf("unable to delete dialog state: %d: %s", dialogState.ParticipantId, err)
+			return bot.msg(update, esc("Произошла ошибка :( Попробуйте еще раз"))
+		}
+	}
+
+	if update.Message.Text == "/cancel" {
+		if err := storage.DeleteDialogState(dialogState.ParticipantId); err != nil {
+			log.Errorf("unable to delete dialog state %d: %s", dialogState.ParticipantId, err)
+			return bot.msg(update, esc("Произошла ошибка :("))
+		} else {
+			return bot.msg(update, esc("Отменено"))
+		}
+	}
+
+	done, err := dialogAction(bot, update, dialogState)
+	if err != nil {
+		log.Errorf("dialog step error: %s", err)
+	}
+
+	if done {
+		if err := storage.DeleteDialogState(dialogState.ParticipantId); err != nil {
+			log.Errorf("unable to delete dialog state %d: %s", dialogState.ParticipantId, err)
+			return bot.msg(update, esc("Произошла ошибка :("))
+		}
+	} else {
+		if err := storage.SaveDialogState(dialogState); err != nil {
+			log.Errorf("unable to sage dialog state %d: %s", dialogState.ParticipantId, err)
+			return bot.msg(update, esc("Не удалось сохранить данные :(\nПопробуйте еще раз"))
+		}
+	}
+
+	return nil
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -131,7 +196,8 @@ func esc(text string) string {
 }
 
 func trim(text string, maxLength int) string {
-	runes := []rune(text)
+	trimmed := strings.TrimSpace(text)
+	runes := []rune(trimmed)
 	length := min(len(runes), maxLength)
 	return string(runes[0:length])
 }

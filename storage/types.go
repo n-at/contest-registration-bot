@@ -1,13 +1,5 @@
 package storage
 
-const (
-	RegistrationStepZero      = "zero"
-	RegistrationStepName      = "name"
-	RegistrationStepSchool    = "school"
-	RegistrationStepContacts  = "contacts"
-	RegistrationStepLanguages = "languages"
-)
-
 type Contest struct {
 	Id          uint64 `boltholdKey:"Id"`
 	Name        string
@@ -30,15 +22,14 @@ type ContestParticipant struct {
 	Password      string
 }
 
-type RegistrationState struct {
+type DialogState struct {
 	ParticipantId int64 `boltholdKey:"ParticipantId"`
-	ContestId     uint64
-	Step          string
-	Name          string
-	School        string
-	Contacts      string
-	Languages     string
+	DialogType    string
+	DialogStep    string
+	Values        DialogValues
 }
+
+type DialogValues map[string]interface{}
 
 type ContestNotification struct {
 	Id        uint64 `boltholdKey:"Id"`
