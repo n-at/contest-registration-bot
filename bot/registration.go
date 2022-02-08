@@ -9,7 +9,12 @@ import (
 
 var registrationSteps = map[string]DialogAction{
 	RegistrationStepZero: func(bot *Bot, update *tgbotapi.Update, state *storage.DialogState) (bool, error) {
-		if err := bot.msg(update, esc("Начинаем регистрацию на контест.\nЧтобы отменить регистрацию, введите /cancel\nВведите Ваше имя:")); err != nil {
+		message := strings.Builder{}
+		message.WriteString(esc("Начинаем регистрацию на контест.\n"))
+		message.WriteString(esc("Чтобы отменить регистрацию, в любой момент введите /cancel\n\n"))
+		message.WriteString(esc("Введите Ваши фамилию, имя и отчество\n"))
+		message.WriteString("_" + esc("например: Иванов Иван Иванович") + "_")
+		if err := bot.msg(update, message.String()); err != nil {
 			return false, err
 		}
 		state.DialogStep = RegistrationStepName
@@ -19,12 +24,15 @@ var registrationSteps = map[string]DialogAction{
 	RegistrationStepName: func(bot *Bot, update *tgbotapi.Update, state *storage.DialogState) (bool, error) {
 		name := trim(update.Message.Text, 100)
 		if len(name) == 0 {
-			if err := bot.msg(update, esc("Попробуйте ввести имя еще раз")); err != nil {
+			if err := bot.msg(update, esc("Попробуйте ввести ФИО еще раз")); err != nil {
 				return false, err
 			}
 			return false, nil
 		}
-		if err := bot.msg(update, esc("Введите название Вашей школы или ВУЗа, а также класс (или курс и группу):")); err != nil {
+		message := strings.Builder{}
+		message.WriteString(esc("Введите название Вашей школы или ВУЗа, а также класс (или курс и группу)\n"))
+		message.WriteString("_" + esc("например: ПсковГУ, 1 курс, группа 081-0902") + "_")
+		if err := bot.msg(update, message.String()); err != nil {
 			return false, err
 		}
 		state.Values["Name"] = name
@@ -40,7 +48,10 @@ var registrationSteps = map[string]DialogAction{
 			}
 			return false, nil
 		}
-		if err := bot.msg(update, esc("Введите Ваши контактные данные (номер телефона и адрес электронной почты):")); err != nil {
+		message := strings.Builder{}
+		message.WriteString(esc("Введите Ваши контактные данные, например номер телефона и адрес электронной почты, либо напишите, как в Вами можно связаться\n"))
+		message.WriteString("_" + esc("например: +7-000-000-00-00, mail@example.com") + "_")
+		if err := bot.msg(update, message.String()); err != nil {
 			return false, err
 		}
 		state.Values["School"] = school
@@ -56,7 +67,10 @@ var registrationSteps = map[string]DialogAction{
 			}
 			return false, nil
 		}
-		if err := bot.msg(update, esc("И последний вопрос, какие предпочитаете языки и среды программирования:")); err != nil {
+		message := strings.Builder{}
+		message.WriteString(esc("И последний вопрос, какие предпочитаете языки и среды программирования\n"))
+		message.WriteString("_" + esc("например: C++, Visual Studio") + "_")
+		if err := bot.msg(update, message.String()); err != nil {
 			return false, err
 		}
 		state.Values["Contacts"] = contacts
@@ -82,9 +96,10 @@ var registrationSteps = map[string]DialogAction{
 			return true, nil
 		}
 		message := strings.Builder{}
-		message.WriteString(esc("Регистрация завершена :)\n"))
+		message.WriteString(esc("Спасибо за ответы. Регистрация завершена :)\n"))
 		message.WriteString("*Логин:* `" + esc(participant.Login) + "`\n")
-		message.WriteString("*Пароль:* `" + esc(participant.Password) + "`")
+		message.WriteString("*Пароль:* `" + esc(participant.Password) + "`\n\n")
+		message.WriteString("Посмотреть сведения о контесте и проверить регистрационные данные можно через команду /contests")
 		if err := bot.msg(update, message.String()); err != nil {
 			return true, err
 		}
