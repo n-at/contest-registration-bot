@@ -2,10 +2,8 @@ package bot
 
 import (
 	"contest-registration-bot/storage"
-	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	log "github.com/sirupsen/logrus"
-	"strconv"
 	"strings"
 )
 
@@ -23,8 +21,6 @@ func (bot *Bot) processCommand(update *tgbotapi.Update) error {
 		return bot.commandContests(update)
 	case "registration":
 		return bot.commandRegistration(update)
-	case "register":
-		return bot.commandRegister(update)
 	default:
 		return bot.msg(update, esc("Не знаю такой команды :("))
 	}
@@ -111,87 +107,12 @@ func (bot *Bot) commandContests(update *tgbotapi.Update) error {
 	return bot.msg(update, message.String())
 }
 
-// commandRegistration List contests available for registration
+// commandRegistration Start contest choose dialog
 func (bot *Bot) commandRegistration(update *tgbotapi.Update) error {
-	contests, err := storage.GetContests()
-	if err != nil {
-		log.Errorf("/registration: unable to get contests: %s", err)
-		return bot.msg(update, esc("Не удалось найти контесты :("))
+	state := &storage.DialogState{
+		ParticipantId: update.Message.Chat.ID,
+		DialogType:    DialogTypeChooseContest,
+		DialogStep:    ChooseContestStepZero,
 	}
-
-	var contestButtons []tgbotapi.KeyboardButton
-
-	for _, contest := range contests {
-		if contest.Hidden || contest.Closed {
-			continue
-		}
-		callback := fmt.Sprintf("/register %d %s", contest.Id, contest.Name)
-		button := tgbotapi.NewKeyboardButton(callback)
-		contestButtons = append(contestButtons, button)
-	}
-
-	if len(contestButtons) == 0 {
-		return bot.msg(update, "Доступных для регистрации контестов нет")
-	}
-
-	message := tgbotapi.NewMessage(update.Message.Chat.ID, "Выберите доступный для регистрации контест")
-	keyboard := tgbotapi.NewReplyKeyboard(tgbotapi.NewKeyboardButtonRow(contestButtons...))
-	keyboard.OneTimeKeyboard = true
-	message.ReplyMarkup = keyboard
-	_, err = bot.api.Send(message)
-	return err
-}
-
-// commandRegister Begin contest registration
-func (bot *Bot) commandRegister(update *tgbotapi.Update) error {
-	commandArguments := strings.TrimSpace(update.Message.CommandArguments())
-	arguments := strings.Split(commandArguments, " ")
-	if len(arguments) == 0 {
-		log.Errorf("/register: format mismatch")
-		return bot.msg(update, esc("Не удалось распознать команду :("))
-	}
-
-	contestId, err := strconv.ParseUint(arguments[0], 10, 64)
-	if err != nil {
-		log.Errorf("/register contestId parsing error: %s", err)
-		return bot.msg(update, esc("Не удалось определить, на какой контест идет регистрация :("))
-	}
-
-	contest, err := storage.GetContest(contestId)
-	if err != nil {
-		log.Errorf("/register: contest get error: %s", err)
-		return bot.msg(update, esc("Не удалось найти контест :("))
-	}
-	if contest.Hidden {
-		log.Errorf("/register: request of hidden contest %d", contestId)
-		return bot.msg(update, esc("Этот контест больше не существует :("))
-	}
-	if contest.Closed {
-		log.Errorf("/register: request of closed contest %d", contestId)
-		return bot.msg(update, esc("Регистрация на этот контест закрыта :("))
-	}
-
-	participantId := update.Message.Chat.ID
-	participation, err := storage.GetContestParticipantParticipation(participantId)
-	if err != nil {
-		log.Errorf("/register: unable to find participant's contests: %s", err)
-		return bot.msg(update, esc("Что-то пошло не так :("))
-	}
-	for _, participant := range participation {
-		if participant.ContestId == contestId {
-			log.Infof("/register: double registration of %d to %d", participantId, contestId)
-			return bot.msg(update, "На этот контест уже есть регистрация")
-		}
-	}
-
-	registrationState := &storage.DialogState{
-		ParticipantId: participantId,
-		DialogType:    DialogTypeRegistration,
-		DialogStep:    RegistrationStepZero,
-		Values: storage.DialogValues{
-			"ContestId": contestId,
-		},
-	}
-
-	return bot.processDialog(update, registrationState)
+	return bot.processDialog(update, state)
 }

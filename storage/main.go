@@ -49,6 +49,15 @@ func GetContest(id uint64) (*Contest, error) {
 	return &contest, nil
 }
 
+// GetContestByName Find contest by its name
+func GetContestByName(name string) (*Contest, error) {
+	var contest Contest
+	if err := store.FindOne(&contest, bolthold.Where("Name").Eq(name)); err != nil {
+		return nil, err
+	}
+	return &contest, nil
+}
+
 // SaveContest Create new or update contest
 func SaveContest(contest *Contest) error {
 	if contest.Id != 0 {

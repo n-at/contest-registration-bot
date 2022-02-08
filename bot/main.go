@@ -11,13 +11,17 @@ import (
 const (
 	defaultTimeout = 30
 
-	DialogTypeRegistration = "registration"
+	DialogTypeRegistration  = "registration"
+	DialogTypeChooseContest = "choose_contest"
 
 	RegistrationStepZero      = "zero"
 	RegistrationStepName      = "name"
 	RegistrationStepSchool    = "school"
 	RegistrationStepContacts  = "contacts"
 	RegistrationStepLanguages = "languages"
+
+	ChooseContestStepZero   = "zero"
+	ChooseContestStepChoice = "choice"
 )
 
 type Configuration struct {
@@ -34,11 +38,14 @@ type Bot struct {
 type DialogAction func(bot *Bot, update *tgbotapi.Update, state *storage.DialogState) (bool, error)
 type DialogSteps map[string]DialogAction
 
-var (
+var dialogs map[string]DialogSteps
+
+func init() {
 	dialogs = map[string]DialogSteps{
-		DialogTypeRegistration: registrationSteps,
+		DialogTypeRegistration:  registrationSteps,
+		DialogTypeChooseContest: chooseContestSteps,
 	}
-)
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 
