@@ -1,10 +1,10 @@
 web:
   #Address to listen
   listen: ":3000"
-  debug-templates: false
+  debugTemplates: false
 
 bot:
   #Telegram bot token
   token: "******"
-  update-timeout: 30
+  updateTimeout: 30
   debug: false
